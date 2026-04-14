@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Muestreo Íctico">
+  <title>Muestreo Íctico · CHD</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg2: #f5f5f3;
+      --bg3: #eeece8;
+      --text: #1a1a18;
+      --text2: #6b6b68;
+      --text3: #9b9b98;
+      --border: rgba(0,0,0,0.12);
+      --border2: rgba(0,0,0,0.22);
+      --blue-bg: #e6f1fb;
+      --blue-text: #185fa5;
+      --blue-border: rgba(24,95,165,0.3);
+      --green-bg: #eaf3de;
+      --green-text: #3b6d11;
+      --green-border: rgba(59,109,17,0.3);
+      --amber-bg: #faeeda;
+      --amber-text: #854f0b;
+      --amber-border: rgba(133,79,11,0.3);
+      --red-bg: #fcebeb;
+      --red-text: #a32d2d;
+      --red-border: rgba(163,45,45,0.3);
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg2: #252523;
+        --bg3: #2e2e2b;
+        --text: #f0ede8;
+        --text2: #a8a8a4;
+        --text3: #6b6b68;
+        --border: rgba(255,255,255,0.1);
+        --border2: rgba(255,255,255,0.2);
+        --blue-bg: #0c447c;
+        --blue-text: #b5d4f4;
+        --blue-border: rgba(181,212,244,0.25);
+        --green-bg: #27500a;
+        --green-text: #c0dd97;
+        --green-border: rgba(192,221,151,0.25);
+        --amber-bg: #633806;
+        --amber-text: #fac775;
+        --amber-border: rgba(250,199,117,0.25);
+        --red-bg: #791f1f;
+        --red-text: #f7c1c1;
+        --red-border: rgba(247,193,193,0.25);
+      }
+    }
+
+    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; line-height: 1.5; }
+
+    .app { max-width: 480px; margin: 0 auto; padding: 0 12px 32px; min-height: 100vh; }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .header { display: flex; align-items: center; gap: 10px; padding: 16px 0 14px; border-bottom: 0.5px solid var(--border); margin-bottom: 16px; }
+    .header-title { flex: 1; }
+    .header-title h1 { font-size: 18px; font-weight: 500; }
+    .header-title p { font-size: 12px; color: var(--text2); margin-top: 1px; }
+
+    .badge { display: inline-block; font-size: 11px; padding: 3px 9px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+    .badge-blue { background: var(--blue-bg); color: var(--blue-text); border: 0.5px solid var(--blue-border); }
+    .badge-green { background: var(--green-bg); color: var(--green-text); border: 0.5px solid var(--green-border); }
+    .badge-amber { background: var(--amber-bg); color: var(--amber-text); border: 0.5px solid var(--amber-border); }
+    .badge-gray { background: var(--bg2); color: var(--text2); border: 0.5px solid var(--border); }
+
+    .tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+    .tab { flex: 1; padding: 8px 4px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg2); font-size: 13px; cursor: pointer; text-align: center; color: var(--text2); transition: all 0.15s; }
+    .tab.active { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 5px; }
+    .field input, .field select, .field textarea {
+      width: 100%; border: 0.5px solid var(--border2); border-radius: var(--radius);
+      padding: 9px 11px; font-size: 14px; background: var(--bg); color: var(--text);
+      -webkit-appearance: none; appearance: none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none; border-color: var(--blue-text); box-shadow: 0 0 0 3px var(--blue-bg);
+    }
+    .field textarea { resize: none; height: 72px; font-family: inherit; }
+    .field-row { display: flex; gap: 8px; }
+    .field-row .field { flex: 1; margin-bottom: 0; }
+
+    .btn { display: block; width: 100%; padding: 11px 16px; border-radius: var(--radius); border: 0.5px solid var(--border2); background: var(--bg); color: var(--text); font-size: 14px; font-weight: 500; cursor: pointer; margin-bottom: 8px; text-align: center; transition: opacity 0.15s; -webkit-tap-highlight-color: transparent; }
+    .btn:active { opacity: 0.75; }
+    .btn-primary { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+    .btn-success { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+    .btn-amber { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
+    .btn-danger { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+    .btn-sm { width: auto; display: inline-block; padding: 6px 12px; font-size: 13px; margin-bottom: 0; }
+
+    .gps-box { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 14px; }
+    .gps-box-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .gps-box-header span { font-size: 13px; font-weight: 500; }
+    .gps-coords { font-size: 13px; color: var(--text2); font-family: 'SF Mono', 'Courier New', monospace; }
+    .gps-enriched { font-size: 12px; color: var(--green-text); margin-top: 6px; line-height: 1.4; }
+
+    .mic-btn { width: 100%; margin-top: 6px; padding: 9px; border: 0.5px solid var(--border2); border-radius: var(--radius); background: var(--bg2); color: var(--text2); font-size: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .mic-btn.listening { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+
+    .sep { border: none; border-top: 0.5px solid var(--border); margin: 16px 0; }
+
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-header h3 { font-size: 15px; font-weight: 500; }
+
+    .pasada-card { border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 10px; background: var(--bg); }
+    .pasada-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .pasada-header strong { font-size: 14px; font-weight: 500; }
+
+    .col-header { display: grid; grid-template-columns: 26px 1fr 68px 58px 28px; gap: 5px; font-size: 11px; color: var(--text3); padding-bottom: 5px; border-bottom: 0.5px solid var(--border); margin-bottom: 6px; }
+    .captura-row { display: grid; grid-template-columns: 26px 1fr 68px 58px 28px; gap: 5px; align-items: center; margin-bottom: 6px; }
+    .captura-row .cap-num { font-size: 12px; color: var(--text3); text-align: center; }
+    .captura-row input, .captura-row select { padding: 6px 7px; border: 0.5px solid var(--border2); border-radius: 6px; font-size: 13px; background: var(--bg); color: var(--text); width: 100%; -webkit-appearance: none; }
+    .captura-row .del-btn { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 18px; line-height: 1; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    .add-captura-btn { background: none; border: none; color: var(--blue-text); font-size: 13px; cursor: pointer; padding: 4px 0; -webkit-tap-highlight-color: transparent; }
+
+    .sync-bar { display: flex; align-items: center; gap: 9px; padding: 9px 12px; border-radius: var(--radius); border: 0.5px solid var(--border); background: var(--bg2); font-size: 13px; margin-bottom: 12px; }
+    .sync-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green { background: #1D9E75; }
+    .dot-amber { background: #EF9F27; }
+    .dot-gray { background: #888780; }
+    .dot-spin { background: #378ADD; animation: pulse 1s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .queue-banner { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--amber-bg); border: 0.5px solid var(--amber-border); border-radius: var(--radius); padding: 9px 12px; margin-bottom: 12px; font-size: 13px; color: var(--amber-text); }
+
+    .puntos-list { }
+    .punto-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border: 0.5px solid var(--border); border-radius: var(--radius-lg); margin-bottom: 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; background: var(--bg); }
+    .punto-item:active { background: var(--bg2); }
+    .punto-info { flex: 1; min-width: 0; }
+    .punto-id { font-weight: 500; font-size: 14px; }
+    .punto-det { font-size: 12px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; color: var(--text2); }
+    .summary-row span:last-child { color: var(--text); font-weight: 500; text-align: right; max-width: 60%; word-break: break-all; }
+
+    .webhook-box { background: var(--bg2); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px; margin-bottom: 14px; }
+    .webhook-box label { font-size: 12px; color: var(--text2); display: block; margin-bottom: 6px; }
+    .webhook-box input { width: 100%; border: 0.5px solid var(--border2); border-radius: var(--radius); padding: 8px 10px; font-size: 12px; font-family: 'SF Mono', monospace; background: var(--bg); color: var(--text); }
+
+    .config-info { font-size: 12px; color: var(--text2); line-height: 1.7; margin-top: 12px; }
+    .config-info strong { font-weight: 500; color: var(--text); }
+
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 9px 20px; border-radius: 20px; font-size: 13px; font-weight: 500; display: none; z-index: 9999; white-space: nowrap; border: 0.5px solid; }
+    .toast-success { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
+    .toast-error { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
+    .toast-info { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
+    .toast-amber { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
+
+    .empty-state { text-align: center; padding: 32px 0; color: var(--text2); font-size: 13px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- PANTALLA HOME -->
+  <div id="screen-home" class="screen active">
+    <div class="header">
+      <div class="header-title">
+        <h1>Muestreo íctico</h1>
+        <p>Cuenca del Duero · CHD</p>
+      </div>
+      <span class="badge badge-gray" id="conn-badge">—</span>
+    </div>
+
+    <div id="sync-bar-home" class="sync-bar" style="display:none;">
+      <div class="sync-dot dot-gray" id="sync-dot-home"></div>
+      <span id="sync-msg-home" style="flex:1;">—</span>
+    </div>
+
+    <div id="queue-banner" class="queue-banner" style="display:none;">
+      <span id="queue-msg">— pendientes</span>
+      <button class="btn btn-sm btn-amber" onclick="syncPending()">Sincronizar</button>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-btn-nuevo" onclick="showTab('nuevo',this)">Nuevo</div>
+      <div class="tab" id="tab-btn-guardados" onclick="showTab('guardados',this)">Guardados</div>
+      <div class="tab" id="tab-btn-config" onclick="showTab('config',this)">Config</div>
+    </div>
+
+    <div id="tab-nuevo">
+      <button class="btn btn-primary" onclick="nuevoPunto()">+ Nuevo punto de muestreo</button>
+      <p style="font-size:12px;color:var(--text2);text-align:center;margin-top:4px;">Los datos se sincronizan automáticamente con Google Sheets al guardar</p>
+    </div>
+
+    <div id="tab-guardados" style="display:none;">
+      <div class="puntos-list" id="puntos-list"></div>
+      <div id="no-puntos" class="empty-state" style="display:none;">No hay puntos guardados aún</div>
+      <hr class="sep">
+      <button class="btn" onclick="exportCSV()">⬇ Exportar todo a CSV</button>
+    </div>
+
+    <div id="tab-config" style="display:none;">
+      <div class="webhook-box">
+        <label>URL del webhook · Google Apps Script</label>
+        <input type="url" id="webhook-input" placeholder="https://script.google.com/macros/s/..." oninput="saveWebhook(this.value)">
+      </div>
+      <div id="webhook-ok" style="font-size:12px;color:var(--green-text);margin-bottom:10px;display:none;">✓ URL configurada</div>
+      <button class="btn btn-primary" onclick="testWebhook()">Probar conexión con Google Sheets</button>
+      <hr class="sep">
+      <button class="btn btn-danger" onclick="clearAll()">Borrar todos los datos locales</button>
+      <div class="config-info">
+        <strong>Cómo configurar en 4 pasos:</strong><br>
+        1. Crea un Google Sheet con una hoja llamada <em>Capturas</em><br>
+        2. En script.google.com → nuevo proyecto → pega el script<br>
+        3. Implementar → App web → acceso: cualquier persona<br>
+        4. Copia la URL del webhook y pégala aquí
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA PUNTO -->
+  <div id="screen-punto" class="screen">
+    <div class="header">
+      <button class="btn btn-sm" onclick="goTo('screen-home')" style="margin-bottom:0;">← Volver</button>
+      <div class="header-title" style="text-align:center;">
+        <h1 style="font-size:16px;">Punto de muestreo</h1>
+      </div>
+      <span class="badge badge-blue" id="punto-id-badge">—</span>
+    </div>
+
+    <div class="field">
+      <label>ID automático</label>
+      <input type="text" id="auto-id" readonly style="color:var(--text2);">
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>ID manual</label>
+        <input type="text" id="manual-id" placeholder="PM-2024-001">
+      </div>
+      <div class="field">
+        <label>Nº punto</label>
+        <input type="number" id="num-punto" placeholder="1" min="1">
+      </div>
+    </div>
+
+    <div class="gps-box">
+      <div class="gps-box-header">
+        <span>Coordenadas GPS</span>
+        <button class="btn btn-sm btn-primary" onclick="getGPS()">Obtener GPS</button>
+      </div>
+      <div class="gps-coords" id="coords-display">Pendiente de captura...</div>
+      <div class="gps-enriched" id="enriched-display"></div>
+    </div>
+
+    <div class="field">
+      <label>Observaciones</label>
+      <textarea id="obs-text" placeholder="Condiciones del cauce, vegetación, turbidez, caudal estimado..."></textarea>
+      <button class="mic-btn" id="mic-obs" onclick="toggleVoice('obs-text','mic-obs')">🎤 Dictar observaciones</button>
+    </div>
+
+    <hr class="sep">
+
+    <div class="section-header">
+      <h3>Pasadas</h3>
+      <button class="btn btn-sm btn-primary" onclick="addPasada()">+ Añadir pasada</button>
+    </div>
+    <div id="pasadas-container"></div>
+
+    <hr class="sep">
+    <button class="btn btn-success" onclick="guardarPunto()">💾 Guardar y sincronizar</button>
+  </div>
+
+  <!-- PANTALLA RESUMEN -->
+  <div id="screen-resumen" class="screen">
+    <div class="header">
+      <button class="btn btn-sm" onclick="goTo('screen-home')" style="margin-bottom:0;">← Inicio</button>
+      <div class="header-title" style="text-align:center;">
+        <h1 style="font-size:16px;">Punto guardado</h1>
+      </div>
+      <span class="badge badge-green" id="resumen-badge">OK</span>
+    </div>
+
+    <div class="sync-bar" id="sync-bar-resumen">
+      <div class="sync-dot dot-gray" id="sync-dot-resumen"></div>
+      <span id="sync-msg-resumen">—</span>
+    </div>
+
+    <div id="resumen-content"></div>
+
+    <hr class="sep">
+    <button class="btn btn-primary" onclick="nuevoPunto()">+ Nuevo punto de muestreo</button>
+    <button class="btn" onclick="goTo('screen-home')">Ir al inicio</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzrJne3PTHpzU1u6mo63PPDOFEngtg38Em2kqGSRiZmKHxW2eCmqsIeFQ6biAdEbf2P8w/exec';
+
+const ESPECIES = [
+  'Trucha común (Salmo trutta)',
+  'Trucha arcoíris (Oncorhynchus mykiss)',
+  'Barbo ibérico (Luciobarbus bocagei)',
+  'Barbo comizo (Luciobarbus comizo)',
+  'Bermejuela (Achondrostoma arcasii)',
+  'Cacho (Squalius pyrenaicus)',
+  'Boga de río (Pseudochondrostoma polylepis)',
+  'Tenca (Tinca tinca)',
+  'Carpa (Cyprinus carpio)',
+  'Perca sol (Lepomis gibbosus)',
+  'Black bass (Micropterus salmoides)',
+  'Lucio (Esox lucius)',
+  'Cangrejo señal (Pacifastacus leniusculus)',
+  'Cangrejo autóctono (Austropotamobius pallipes)',
+  'Otra especie'
+];
+
+let puntos = [];
+let pendingSync = [];
+let currentPunto = null;
+let pasadaCount = 0;
+let autoIdCounter = 1;
+let activeRecognition = null;
+
+function loadData() {
+  try { puntos = JSON.parse(localStorage.getItem('muestreo_puntos') || '[]'); } catch(e) { puntos = []; }
+  try { pendingSync = JSON.parse(localStorage.getItem('muestreo_pending') || '[]'); } catch(e) { pendingSync = []; }
+  autoIdCounter = puntos.length + 1;
+  const savedUrl = localStorage.getItem('webhook_url');
+  if (savedUrl) {
+    const inp = document.getElementById('webhook-input');
+    if (inp) inp.value = savedUrl;
+  }
+}
+
+function saveData() {
+  try { localStorage.setItem('muestreo_puntos', JSON.stringify(puntos)); } catch(e) {}
+  try { localStorage.setItem('muestreo_pending', JSON.stringify(pendingSync)); } catch(e) {}
+}
+
+function getWebhookUrl() {
+  return localStorage.getItem('webhook_url') || WEBHOOK_URL;
+}
+
+function saveWebhook(val) {
+  localStorage.setItem('webhook_url', val);
+  document.getElementById('webhook-ok').style.display = val ? 'block' : 'none';
+}
+
+// ---- NAVIGATION ----
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-home') { checkConnAndQueue(); renderPuntosList(); }
+}
+
+function showTab(tab, el) {
+  ['nuevo','guardados','config'].forEach(t => {
+    document.getElementById('tab-' + t).style.display = t === tab ? 'block' : 'none';
+    document.getElementById('tab-btn-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'guardados') renderPuntosList();
+  if (tab === 'config') {
+    const saved = localStorage.getItem('webhook_url') || WEBHOOK_URL;
+    document.getElementById('webhook-input').value = saved;
+    document.getElementById('webhook-ok').style.display = saved ? 'block' : 'none';
+  }
+}
+
+// ---- CONNECTIVITY ----
+function checkConnAndQueue() {
+  const online = navigator.onLine;
+  const badge = document.getElementById('conn-badge');
+  badge.textContent = online ? 'Conectado' : 'Sin conexión';
+  badge.className = 'badge ' + (online ? 'badge-green' : 'badge-amber');
+
+  const qb = document.getElementById('queue-banner');
+  if (pendingSync.length > 0) {
+    qb.style.display = 'flex';
+    document.getElementById('queue-msg').textContent = pendingSync.length + ' punto(s) pendiente(s) de sincronizar';
+    if (online) setTimeout(syncPending, 800);
+  } else {
+    qb.style.display = 'none';
+  }
+}
+
+function setSyncBar(dotType, msg) {
+  const bar = document.getElementById('sync-bar-home');
+  bar.style.display = 'flex';
+  document.getElementById('sync-dot-home').className = 'sync-dot dot-' + dotType;
+  document.getElementById('sync-msg-home').textContent = msg;
+}
+
+function setSyncResumen(dotType, msg) {
+  document.getElementById('sync-dot-resumen').className = 'sync-dot dot-' + dotType;
+  document.getElementById('sync-msg-resumen').textContent = msg;
+}
+
+// ---- SHEETS SYNC ----
+function buildRows(p) {
+  const rows = [];
+  const base = { autoId:p.autoId, manualId:p.manualId||'', numPunto:p.numPunto||'', lat:p.lat||'', lon:p.lon||'', rio:p.rio||'', localidad:p.localidad||'', fechaHora:p.fechaHora||'', observaciones:p.observaciones||'' };
+  if (p.pasadas.length === 0) {
+    rows.push({ ...base, pasada:'', numCaptura:'', especie:'', longitud:'', peso:'' });
+  } else {
+    p.pasadas.forEach(pa => {
+      if (pa.capturas.length === 0) {
+        rows.push({ ...base, pasada:pa.num, numCaptura:'', especie:'', longitud:'', peso:'' });
+      } else {
+        pa.capturas.forEach(c => rows.push({ ...base, pasada:pa.num, numCaptura:c.num, especie:c.especie||'', longitud:c.longitud||'', peso:c.peso||'' }));
+      }
+    });
+  }
+  return rows;
+}
+
+async function sendToSheets(punto) {
+  const url = getWebhookUrl();
+  if (!url) return { ok:false, reason:'no-webhook' };
+  if (!navigator.onLine) return { ok:false, reason:'offline' };
+  try {
+    const resp = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ rows: buildRows(punto) })
+    });
+    const data = await resp.json();
+    return data.ok ? { ok:true } : { ok:false, reason:'server', detail:data.error };
+  } catch(e) {
+    return { ok:false, reason:'network', detail:e.message };
+  }
+}
+
+async function syncPending() {
+  if (pendingSync.length === 0) return;
+  setSyncBar('spin', 'Sincronizando ' + pendingSync.length + ' punto(s)...');
+  const remaining = [];
+  for (const p of pendingSync) {
+    const res = await sendToSheets(p);
+    if (!res.ok) remaining.push(p);
+  }
+  pendingSync = remaining;
+  saveData();
+  if (remaining.length === 0) {
+    setSyncBar('green', 'Todo sincronizado con Google Sheets ✓');
+    document.getElementById('queue-banner').style.display = 'none';
+    showToast('Sincronización completada', 'success');
+  } else {
+    setSyncBar('amber', remaining.length + ' punto(s) pendientes — reintentará con conexión');
+  }
+}
+
+async function testWebhook() {
+  if (!navigator.onLine) { showToast('Sin conexión a internet', 'error'); return; }
+  showToast('Probando conexión...', 'info');
+  const res = await sendToSheets({ autoId:'TEST', manualId:'test', numPunto:'0', lat:'41.650', lon:'-4.723', rio:'Río Duero', localidad:'Soria', fechaHora:new Date().toISOString(), observaciones:'Prueba de conexión', pasadas:[] });
+  if (res.ok) showToast('Conexión correcta con Google Sheets ✓', 'success');
+  else showToast('Error: ' + (res.detail || res.reason), 'error');
+}
+
+// ---- NUEVO PUNTO ----
+function nuevoPunto() {
+  pasadaCount = 0;
+  document.getElementById('pasadas-container').innerHTML = '';
+  const autoId = 'PM-' + String(autoIdCounter).padStart(4,'0');
+  document.getElementById('auto-id').value = autoId;
+  document.getElementById('manual-id').value = '';
+  document.getElementById('num-punto').value = '';
+  document.getElementById('obs-text').value = '';
+  document.getElementById('coords-display').textContent = 'Pendiente de captura...';
+  document.getElementById('enriched-display').textContent = '';
+  document.getElementById('punto-id-badge').textContent = autoId;
+  currentPunto = { autoId, lat:null, lon:null, rio:null, localidad:null, pasadas:[] };
+  goTo('screen-punto');
+}
+
+// ---- GPS ----
+function getGPS() {
+  const coordsEl = document.getElementById('coords-display');
+  const enrichEl = document.getElementById('enriched-display');
+  coordsEl.textContent = 'Obteniendo GPS...';
+  if (!navigator.geolocation) { coordsEl.textContent = 'GPS no disponible en este dispositivo'; return; }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const lat = pos.coords.latitude.toFixed(6);
+      const lon = pos.coords.longitude.toFixed(6);
+      coordsEl.textContent = lat + ', ' + lon;
+      if (currentPunto) { currentPunto.lat = lat; currentPunto.lon = lon; }
+      enrichFromCoords(lat, lon, enrichEl);
+    },
+    err => { coordsEl.textContent = 'Error GPS: ' + err.message; },
+    { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+  );
+}
+
+async function enrichFromCoords(lat, lon, el) {
+  el.textContent = 'Consultando datos geográficos...';
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/reverse?lat=' + lat + '&lon=' + lon + '&format=json&accept-language=es');
+    const d = await r.json();
+    const localidad = d.address?.village || d.address?.town || d.address?.city || d.address?.municipality || d.address?.county || 'Desconocida';
+    const provincia = d.address?.state || '';
+    if (currentPunto) { currentPunto.localidad = localidad; currentPunto.provincia = provincia; }
+    el.textContent = '📍 ' + localidad + (provincia ? ', ' + provincia : '');
+    fetchCauce(lat, lon, el, localidad, provincia);
+  } catch(e) {
+    el.textContent = 'Sin conexión — coordenadas guardadas sin enriquecimiento';
+  }
+}
+
+async function fetchCauce(lat, lon, el, localidad, provincia) {
+  try {
+    const query = '[out:json];way[waterway=river](around:800,' + lat + ',' + lon + ');out 1;';
+    const r = await fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query));
+    const d = await r.json();
+    if (d.elements && d.elements.length > 0) {
+      const rio = d.elements[0].tags?.name || 'Cauce sin nombre';
+      if (currentPunto) currentPunto.rio = rio;
+      el.textContent = '📍 ' + localidad + (provincia ? ', ' + provincia : '') + ' · 🌊 ' + rio + ' (CHD)';
+    }
+  } catch(e) {}
+}
+
+// ---- PASADAS Y CAPTURAS ----
+function addPasada() {
+  pasadaCount++;
+  const n = pasadaCount;
+  const div = document.createElement('div');
+  div.className = 'pasada-card';
+  div.id = 'pasada-' + n;
+  div.innerHTML =
+    '<div class="pasada-header"><strong>Pasada ' + n + '</strong>' +
+    '<button class="btn btn-sm btn-primary" onclick="addCaptura(' + n + ')">+ Captura</button></div>' +
+    '<div class="col-header"><span>Nº</span><span>Especie</span><span>Long.</span><span>Peso</span><span></span></div>' +
+    '<div id="cap-list-' + n + '"></div>' +
+    '<div id="cap-empty-' + n + '" style="font-size:12px;color:var(--text3);padding:4px 0;">Sin capturas registradas</div>';
+  document.getElementById('pasadas-container').appendChild(div);
+  if (currentPunto) currentPunto.pasadas.push({ num: n, capturas: [] });
+}
+
+function addCaptura(pNum) {
+  const pasada = currentPunto.pasadas.find(p => p.num === pNum);
+  if (!pasada) return;
+  const cNum = pasada.capturas.length + 1;
+  pasada.capturas.push({ num:cNum, especie:'', longitud:'', peso:'' });
+  document.getElementById('cap-empty-' + pNum).style.display = 'none';
+  const opts = ESPECIES.map(e => '<option value="' + e + '">' + e + '</option>').join('');
+  const row = document.createElement('div');
+  row.className = 'captura-row';
+  row.id = 'cap-' + pNum + '-' + cNum;
+  row.innerHTML =
+    '<span class="cap-num">' + cNum + '</span>' +
+    '<select onchange="updateCap(' + pNum + ',' + cNum + ',\'especie\',this.value)"><option value="">Especie...</option>' + opts + '</select>' +
+    '<input type="number" placeholder="mm" min="0" step="1" onchange="updateCap(' + pNum + ',' + cNum + ',\'longitud\',this.value)">' +
+    '<input type="number" placeholder="g" min="0" step="0.1" onchange="updateCap(' + pNum + ',' + cNum + ',\'peso\',this.value)">' +
+    '<button class="del-btn" onclick="delCaptura(' + pNum + ',' + cNum + ')">×</button>';
+  document.getElementById('cap-list-' + pNum).appendChild(row);
+}
+
+function updateCap(pNum, cNum, field, val) {
+  const p = currentPunto.pasadas.find(p => p.num === pNum);
+  if (p) { const c = p.capturas.find(c => c.num === cNum); if (c) c[field] = val; }
+}
+
+function delCaptura(pNum, cNum) {
+  const p = currentPunto.pasadas.find(p => p.num === pNum);
+  if (p) p.capturas = p.capturas.filter(c => c.num !== cNum);
+  const el = document.getElementById('cap-' + pNum + '-' + cNum);
+  if (el) el.remove();
+}
+
+// ---- VOZ ----
+function toggleVoice(targetId, btnId) {
+  const btn = document.getElementById(btnId);
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { showToast('Reconocimiento de voz no disponible en este navegador', 'error'); return; }
+  if (activeRecognition) {
+    activeRecognition.stop(); activeRecognition = null;
+    btn.textContent = '🎤 Dictar observaciones'; btn.classList.remove('listening'); return;
+  }
+  const r = new SR();
+  r.lang = 'es-ES'; r.continuous = false; r.interimResults = false;
+  r.onstart = () => { btn.textContent = '⏹ Detener dictado'; btn.classList.add('listening'); };
+  r.onresult = e => {
+    const txt = e.results[0][0].transcript;
+    const el = document.getElementById(targetId);
+    el.value = (el.value ? el.value + ' ' : '') + txt;
+  };
+  r.onend = () => { btn.textContent = '🎤 Dictar observaciones'; btn.classList.remove('listening'); activeRecognition = null; };
+  r.onerror = () => { showToast('Error de reconocimiento de voz', 'error'); btn.textContent = '🎤 Dictar observaciones'; btn.classList.remove('listening'); activeRecognition = null; };
+  activeRecognition = r;
+  r.start();
+}
+
+// ---- GUARDAR ----
+async function guardarPunto() {
+  if (!currentPunto) return;
+  currentPunto.manualId = document.getElementById('manual-id').value;
+  currentPunto.numPunto = document.getElementById('num-punto').value;
+  currentPunto.observaciones = document.getElementById('obs-text').value;
+  currentPunto.fechaHora = new Date().toISOString();
+  puntos.push(currentPunto);
+  autoIdCounter++;
+
+  const online = navigator.onLine;
+
+  mostrarResumen(currentPunto);
+  goTo('screen-resumen');
+
+  if (!online) {
+    pendingSync.push(currentPunto);
+    saveData();
+    setSyncResumen('amber', 'Sin conexión — se sincronizará automáticamente con Google Sheets cuando haya wifi');
+    document.getElementById('resumen-badge').className = 'badge badge-amber';
+    document.getElementById('resumen-badge').textContent = 'Pendiente';
+    return;
+  }
+
+  setSyncResumen('spin', 'Sincronizando con Google Sheets...');
+  saveData();
+  const res = await sendToSheets(currentPunto);
+  if (res.ok) {
+    setSyncResumen('green', 'Sincronizado correctamente con Google Sheets ✓');
+    document.getElementById('resumen-badge').className = 'badge badge-green';
+    document.getElementById('resumen-badge').textContent = 'Sheets ✓';
+    showToast('Guardado y sincronizado', 'success');
+  } else {
+    pendingSync.push(currentPunto);
+    saveData();
+    setSyncResumen('amber', 'Error de sincronización — guardado localmente, reintentará después');
+    document.getElementById('resumen-badge').className = 'badge badge-amber';
+    document.getElementById('resumen-badge').textContent = 'Pendiente';
+    showToast('Guardado localmente — sincronizará después', 'amber');
+  }
+}
+
+function mostrarResumen(p) {
+  const totalCap = p.pasadas.reduce((s, pa) => s + pa.capturas.length, 0);
+  const rows = [
+    ['ID automático', p.autoId],
+    ['ID manual', p.manualId || '—'],
+    ['Nº punto', p.numPunto || '—'],
+    ['Coordenadas', p.lat && p.lon ? p.lat + ', ' + p.lon : '—'],
+    ['Localidad', p.localidad || '—'],
+    ['Cauce (CHD)', p.rio || '—'],
+    ['Pasadas', p.pasadas.length],
+    ['Total capturas', totalCap],
+    ['Fecha / hora', p.fechaHora ? new Date(p.fechaHora).toLocaleString('es-ES') : '—']
+  ];
+  document.getElementById('resumen-content').innerHTML = rows.map(([k,v]) =>
+    '<div class="summary-row"><span>' + k + '</span><span>' + v + '</span></div>'
+  ).join('');
+}
+
+// ---- LISTA GUARDADOS ----
+function renderPuntosList() {
+  const list = document.getElementById('puntos-list');
+  const noMsg = document.getElementById('no-puntos');
+  if (puntos.length === 0) { list.innerHTML = ''; noMsg.style.display = 'block'; return; }
+  noMsg.style.display = 'none';
+  const pendingIds = new Set(pendingSync.map(p => p.autoId));
+  list.innerHTML = puntos.slice().reverse().map((p, i) => {
+    const realIdx = puntos.length - 1 - i;
+    const synced = !pendingIds.has(p.autoId);
+    const totalCap = p.pasadas.reduce((s, pa) => s + pa.capturas.length, 0);
+    return '<div class="punto-item" onclick="verPunto(' + realIdx + ')">' +
+      '<div class="punto-info">' +
+      '<div class="punto-id">' + p.autoId + (p.manualId ? ' · ' + p.manualId : '') + '</div>' +
+      '<div class="punto-det">' + (p.localidad || 'Sin localidad') + ' · ' + (p.rio || 'Sin cauce') + ' · ' + p.pasadas.length + ' pas. · ' + totalCap + ' capt.</div>' +
+      '</div>' +
+      '<span class="badge ' + (synced ? 'badge-green' : 'badge-amber') + '">' + (synced ? 'Sheets ✓' : 'Pendiente') + '</span>' +
+      '</div>';
+  }).join('');
+}
+
+function verPunto(i) {
+  mostrarResumen(puntos[i]);
+  const pendingIds = new Set(pendingSync.map(p => p.autoId));
+  const synced = !pendingIds.has(puntos[i].autoId);
+  document.getElementById('resumen-badge').className = 'badge ' + (synced ? 'badge-green' : 'badge-amber');
+  document.getElementById('resumen-badge').textContent = synced ? 'Sheets ✓' : 'Pendiente';
+  setSyncResumen(synced ? 'green' : 'amber', synced ? 'Sincronizado con Google Sheets' : 'Pendiente de sincronización');
+  goTo('screen-resumen');
+}
+
+// ---- EXPORT CSV ----
+function exportCSV() {
+  if (puntos.length === 0) { showToast('No hay datos para exportar', 'error'); return; }
+  const header = 'ID_auto;ID_manual;Num_punto;Lat;Lon;Rio_CHD;Localidad;Fecha;Pasada;Num_captura;Especie;Longitud_mm;Peso_g;Observaciones';
+  const lines = [header];
+  puntos.forEach(p => buildRows(p).forEach(r => lines.push(Object.values(r).join(';'))));
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'muestreo_ictiologico_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  showToast('CSV exportado', 'success');
+}
+
+// ---- UTILS ----
+function clearAll() {
+  if (!confirm('¿Seguro? Se borrarán todos los datos guardados localmente en este dispositivo.')) return;
+  puntos = []; pendingSync = []; autoIdCounter = 1; saveData();
+  renderPuntosList();
+  showToast('Datos eliminados', 'info');
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast toast-' + (type || 'info');
+  t.style.display = 'block';
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// ---- INIT ----
+window.addEventListener('online', checkConnAndQueue);
+window.addEventListener('offline', checkConnAndQueue);
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  checkConnAndQueue();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+});
+</script>
+</body>
+</html>
