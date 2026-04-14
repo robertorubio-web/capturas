@@ -1,4 +1,4 @@
-# Muestreo Íctico CHD — PWA
+# Muestreo Íctiológico prueba app
 
 App de toma de datos de campo para muestreos ícticos en ríos de la cuenca del Duero.
 
